@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
 <style>
   html,
   body {
@@ -14,6 +14,7 @@
   <div>
     <button id="retryButton">retry</button>
     <button id="retryAsyncButton">retry async</button>
+    <label for="inputShowHex">show hex:</label><input type="checkbox" id="inputShowHex"/>
   </div>
   <div>response: <span id="response"></span></div>
 </div>
@@ -21,31 +22,50 @@
   const responseContainer = window.document.querySelector("#response");
   const retryButton = window.document.querySelector("#retryButton");
   const retryAsyncButton = window.document.querySelector("#retryAsyncButton");
+  const inputShowHex = window.document.querySelector("#inputShowHex");
 
-  function doRequest() {
-    const req = new XMLHttpRequest();
-    // post is the same
-    req.open("get", "testUriScheme://test", false);
-    req.send();
+  let showHex = false;
 
-    responseContainer.innerHTML = JSON.stringify(req.response);
+  function toHexString(byteArray) {
+    return Array.from(byteArray, function (byte) {
+      return (byte.toString(16)).padStart(2, "0");
+    }).join(' ')
   }
 
-  function doRequestAsync() {
+  function initShowHex(req) {
+    req.responseType = "arraybuffer"
+  }
+
+  function parseShowHexRes(req) {
+    responseContainer.innerHTML = toHexString(new Uint8Array(req.response));
+  }
+
+  function doRequest(async) {
     const req = new XMLHttpRequest();
-    req.onload = function () {
-      responseContainer.innerHTML = JSON.stringify(req.response);
+    if (showHex) initShowHex(req)
+
+    if (async) {
+      req.onload = function () {
+        if (showHex) parseShowHexRes(req)
+        else responseContainer.innerHTML = JSON.stringify(req.response)
+      }
     }
+
     // post is the same
-    req.open("get", "testUriScheme://test", true);
+    req.open("get", "testUriScheme://test", async);
     req.send();
+
+    if (!async) {
+      if (showHex) parseShowHexRes(req)
+      else responseContainer.innerHTML = JSON.stringify(req.response)
+    }
   }
 
-  doRequest();
+  retryButton.onclick = () => doRequest(false);
+  retryAsyncButton.onclick = () => doRequest(true);
+  inputShowHex.onchange = (event) => showHex = event.target.value;
 
-
-  retryButton.onclick = doRequest;
-  retryAsyncButton.onclick = doRequestAsync
+  doRequest(false);
 </script>
 </body>
 </html>

@@ -1,34 +1,51 @@
 <!DOCTYPE html>
 <html>
-  <style>
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
+<style>
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+  }
+</style>
+<body>
+<div>
+  <div>
+    <button id="retryButton">retry</button>
+    <button id="retryAsyncButton">retry async</button>
+  </div>
+  <div>response: <span id="response"></span></div>
+</div>
+<script>
+  const responseContainer = window.document.querySelector("#response");
+  const retryButton = window.document.querySelector("#retryButton");
+  const retryAsyncButton = window.document.querySelector("#retryAsyncButton");
+
+  function doRequest() {
+    const req = new XMLHttpRequest();
+    // post is the same
+    req.open("get", "testUriScheme://test", false);
+    req.send();
+
+    responseContainer.innerHTML = JSON.stringify(req.response);
+  }
+
+  function doRequestAsync() {
+    const req = new XMLHttpRequest();
+    req.onload = function () {
+      responseContainer.innerHTML = JSON.stringify(req.response);
     }
-  </style>
-  <body>
-    <div>
-      <div><button id="retryButton">retry</button></div>
-      <div>response: <span id="response"></span></div>
-    </div>
-    <script>
-      const responseContaniner = window.document.querySelector("#response");
-      const retryButton = window.document.querySelector("#retryButton");
+    // post is the same
+    req.open("get", "testUriScheme://test", true);
+    req.send();
+  }
 
-      function doRequest() {
-        const req = new XMLHttpRequest();
-        // post is the same
-        req.open("get", "testUriScheme://test", false);
-        req.send();
+  doRequest();
 
-        responseContaniner.innerHTML = JSON.stringify(req.response);
-      }
-      doRequest();
 
-      retryButton.onclick = doRequest;
-    </script>
-  </body>
+  retryButton.onclick = doRequest;
+  retryAsyncButton.onclick = doRequestAsync
+</script>
+</body>
 </html>
